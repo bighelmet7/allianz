@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ping-svc
+  namespace: allianz
+spec:
+  ports:
+    - name: web
+      port: 8000
+      targetPort: 8000
+  selector:
+    name: ping-app
