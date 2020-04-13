@@ -15,26 +15,25 @@ The steps that your project should follow are the following:
 
 * Minishift version v1.34.2 (running with virtualbox as vm-driver)
 * Openshift version v3.10.0
-* Go v1.13
 
 # 1. Deploy Minishift cluster
 
 ```bash
 minishift start --openshift-version=v3.10.0 --vm-driver=virtualbox
 ```
-At this point Minishift will perfom all the needed actions to setup the Openshift cluster for us.
+At this point Minishift will perfom all the needed actions to set up the Openshift cluster for us.
 
 # Structure
 
-The two main directories available are app/ and manifests/
+The two main directories
 
-* manifests/ contains all the configuration and settings projects.
-* allianz/ is our main project. It  contains all the yaml files to set the Allianz environment.
-* app/ contains all the yamls to set and configure our application
+* manifests/ contains all the project configuration and its settings.
+* allianz/ contains all the yaml files to set up the Allianz environment.
+* app/ contains all the yamls to set and configure our web application.
 
-# Setting User
+# Setting up an user
 
-For learning propose we will create a user called 'devops' that will perfom all our commands so we can difference between an admin user, developer and devops.
+For learning propose we will create a user called 'devops' that will perfom all our commands, therefore we can differentiate between an admin user, developer and a devops.
 
 ```bash
 oc create user devops
@@ -54,7 +53,7 @@ oc login -u devops -p writeAnythingHere
 
 # 2. Create a Namespace
 
-The namespace could be created with the oc CLI or with a yaml/json file; in this case we will be using the file option.
+The namespace could be created either using the **oc CLI** or a yaml/json file. In our case we will be using a yaml file.
 
 ```bash
 cd manifests/allianz
@@ -71,63 +70,52 @@ oc create ns allianz
 
 # 3. Deploy a Jenkins instance
 
-OKD provide us some plug-n-play templates, in our case just select the Jenkins (ephemeral) template, hit the Create button minishift will create our new Jenkins.
+OKD provides us with a catalog of plug-n-play templates. Instead of creating our own Jenkins environment we will can select the Jenkins (ephemeral) template, by selecting the created project, clicking the 'Catalog' option, selecting the suitable 'Jenkins (ephemeral)' and  then clicking the 'Create' option. Finally the minishift will perfom all the needed steps to set up our new Jenkins.
 
-NOTE: for a persistent Jenkins version just download it from here: https://github.com/openshift/origin/blob/master/examples/jenkins/jenkins-persistent-template.json
+NOTE: for a persistent Jenkins version, it can be downloaded using the following link: https://github.com/openshift/origin/blob/master/examples/jenkins/jenkins-persistent-template.json
 
-Go to the OKD console, select the allianz project and select Applications>Route and there should be our jenkins route (this route is the way Openshift/K8s exposes
-our deployment with their internal load balancing), click on the URL and access with your devops user, also give the requests permissions to Jenkins, so it can 
-communicate with our cluster.
+To access the Jenkins environment, go to the OKD console, select the **allianz** project then Applications>Route and a display of our Jenkins route (this route is how Openshift/K8s exposes any deployment with their internal load balancing) will be available. Click on the URL and login with the created devops user. Allow Jenkins's permission requests, so it can communicate with our cluster.
 
 # 4. Create a pipeline
 
-We can deploy create a pipeline with Openshift and Jenkins in several ways:
+We can create a pipeline with Openshift and Jenkins in two ways:
 * Template
 * Custom yaml's structure
 
-In this case we will perfom the pipeline using our custom YAMLs. The main reason is to have a separate view of how the component should be created and also if at 
-some point our client needs a template we can create it merging our yamls in a template yaml (https://docs.openshift.com/container-platform/3.11/dev_guide/templates.html).
+In our case we will create the pipeline using our custom yaml's file. The propose is to have a more detailed view of how all the components should be set up. If at a certain point our client needs a unified template, we can do it by merging our yamls into a yaml template (https://docs.openshift.com/container-platform/3.11/dev_guide/templates.html).
 
-The first of all we have to think about how our application: where the source code is? contains a dockerfile? or a jenkinsfile? is it a local app? ...
+First of all we have to analyze the application we want to deploy: where the source codes exist? does it contain any dockerfile? or a jenkinsfile? is it a local app? ...
 For this exam:
-* the source code lives at http://github.com/bighelmet7/ping
+* the source codes live at http://github.com/bighelmet7/ping
 * it contains a dockerfile
 * it doesnt contain a jenkinsfile
-* is a local webapp (because our cluster is local)
+* it is a local webapp
 
-We need to create a ImageStream that will help us to link our ImageStreamTag when we build the Dockerfile of our 'ping' application.
+We need to create an ImageStream that will help us to link our ImageStreamTag when we build the Dockerfile of our 'ping' application.
 
 ```bash
 cd manifests/app
 oc create -f ping-is.yaml # is stands for ImageStream
 ```
-Then we need a BuildConfig file that will perfom the action of downloading the Github repository and create the docker image with the Dockerfile and also will output
-an ImageStreamTag that can be use in a DeploymentConfig file.
+We need a BuildConfig file that will perfom the action of downloading the Github repository and create a docker image using the Dockerfile. Afterwards it will output an ImageStreamTag 'ping-app:latest' that can be used in a DeploymentConfig file.
 
 ```bash
 oc create -f ping-bc.yaml # bc stands for BuildConfig
 ```
 
-Move on to the Service, Route and DeploymentConfig creation, there are a few things to mark with the DeploymentConfig, first if see the spec.template.spec.containers[0]
-element in the image property we can see that is empty, that is because this will be fullfil with the ImageStreamTag (created with the previous BuildConfig) and the last
-important thing is the triggers part, if you can notice there is an ImageChange which means: whenever we push a new image of our ping-app this will perfom another
-deployment with the new image (https://docs.openshift.com/container-platform/4.1/builds/triggering-builds-build-hooks.html#builds-using-image-change-triggers_triggering-builds-build-hooks)
-that matches the provided ImageStreamTag, and the last important thing about this trigger is the **automatic** parameter setted to false, so Jenkins wont have any
-conflicts deploying at the same time openshift is deploying the same application.
+We need to create the Service, Route and DeploymentConfig files. There are a three points to mark with the DeploymentConfig:
+* The image property of spec.template.spec.containers[0] must be empty, because it will be automatically fulfilled by the ImageStreamTag (previously created by the BuildConfig).
+* The ImageChange triggers works only when it detects a new builed image 'ping-app:latest' in order to perfom another deployment with it (https://docs.openshift.com/container-platform/4.1/builds/triggering-builds-build-hooks.html#builds-using-image-change-triggers_triggering-builds-build-hooks)
+* ImageChange has an **automatic** parameter that has to be set to _false_, to avoid any conflict between Jenkins and Openshift deploying at the same time.
 
 ```bash
 oc create -f ping-route.yaml -f ping-svc.yaml -f ping-dc.yaml
 ```
 
-And finally the pipeline creation which a BuildConfig file but using a Jenkins as a type strategy; our dummy application doesnt contains any Jenkinsfile so then
-we must use the jenkinsfile option. Also notice that we cant use declarative pipelines as default, you must install a plug-in for it, because the pipeline has to
-execute some openshift methods in it, to connect to our Jenkins; another thing to have a close look is the label we pass to the node, there are three basic agents
-in Jenkins with Openshift those are: base, Maven and NodeJS (https://docs.openshift.com/container-platform/3.11/using_images/other_images/jenkins_slaves.html) if
-you need another agent you must create it using the Jenkins configure system option and making sure that oc and openshift are installed.
+Finally the pipeline creation is a BuildConfig file using the Jenkins strategy. Also notice that we can't use declarative pipelines as default, for that a plug-in must be installed. Looking closer at the node label we wrote 'nodejs' because there are three basic agents in Jenkins using Openshift which are: _Base, Maven and NodeJS_ (https://docs.openshift.com/container-platform/3.11/using_images/other_images/jenkins_slaves.html). If another agent is needed, create it using the Jenkins configuration system option and make sure that **oc** is installed.
 
 ```bash
 oc create -f ping-pipeline.yaml
 ```
 
-For executing this pipeline we move to the OKD dashboard (making sure we are using the devops user), move to our project **allianz** and click on Builds>Pipelines
-and there should existr our ping-pipeline hit on the Start pipeline and wait for Jenkins to execute the pipeline.
+We can execute this pipeline by opening the OKD dashboard (login using devops), selecting our project **allianz** and clicking on Builds>Pipelines, there should be a panel with our 'ping-pipeline' and a 'Start pipeline' buttons, click on 'Start pipeline' and wait for Jenkins to execute it.
