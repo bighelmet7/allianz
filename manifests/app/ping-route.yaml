@@ -1,0 +1,14 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: ping-route
+  namespace: allianz
+  labels:
+    name: ping-app
+spec:
+  host: ping-app-allianz.192.168.99.100.nip.io
+  port:
+    targetPort: web
+  to:
+    kind: Service
+    name: ping-svc
