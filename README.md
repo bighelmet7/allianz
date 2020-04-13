@@ -28,9 +28,9 @@ At this point Minishift will perfom all the needed actions to setup the Openshif
 
 The two main directories available are app/ and manifests/
 
-1. manifests/ contains all the configuration and settings projects.
-1.1 allianz/ is our main project. It  contains all the yaml files to set the Allianz environment.
-1.2 jenkins/ contains our jenkins pipelines
+* manifests/ contains all the configuration and settings projects.
+* allianz/ is our main project. It  contains all the yaml files to set the Allianz environment.
+* app/ contains all the yamls to set and configure our application
 
 # Setting User
 
