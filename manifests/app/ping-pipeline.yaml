@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: ping-pipeline
+  namespace: allianz
+  labels:
+    name: ping-app
+spec:
+  strategy:
+    type: Jenkins
+    jenkinsPipelineStrategy:
+      jenkinsfile: |-
+        node('nodejs') {
+          stage('build') {
+            openshift.withCluster() {
+              openshift.withProject() {
+                def bld = openshift.startBuild('ping-bc')
+                bld.untilEach {
+                  return it.object().status.phase == 'Running'
+                }
+                bld.logs('-f')
+              } //withProject
+            } //withCluster
+          } //build
+          stage('deploy') {
+            openshift.withCluster() {
+              openshift.withProject() {
+                def dc = openshift.selector('dc', 'ping-dc').rollout().latest()
+                timeout(time: 1, units: 'MINUTES') {
+                  openshift.selector("dc", 'ping-dc').related('pods').untilEach(1) {
+                    return (it.object().status.phase == "Running")
+                  }
+                }
+              } //withProject
+            } //withCluster
+          } //deploy
+        } // node
