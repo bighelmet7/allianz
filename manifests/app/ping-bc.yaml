@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: ping-bc
+  namespace: allianz
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: "ping-app:latest"
+  source:
+    git:
+      uri: "https://github.com/bighelmet7/ping"
+    type: Git
+  strategy:
+    dockerStrategy:
+      dockerfilePath: .
