@@ -21,7 +21,7 @@ The steps that your project should follow are the following:
 ```bash
 minishift start --openshift-version=v3.10.0 --vm-driver=virtualbox
 ```
-At this point Minishift will perfom all the needed actions to set up the Openshift cluster for us.
+At this point Minishift will perfom all the needed actions to set up the Openshift cluster.
 
 # Structure
 
@@ -62,7 +62,7 @@ oc create -f allianz-ns.yaml
 oc get ns allianz # here should be our namespace.
 ```
 
-Or just do it with the CLI
+Or it can be done using the CLI
 
 ```bash
 oc create ns allianz
@@ -97,7 +97,7 @@ We need to create an ImageStream that will help us to link our ImageStreamTag wh
 cd manifests/app
 oc create -f ping-is.yaml # is stands for ImageStream
 ```
-We need a BuildConfig file that will perfom the action of downloading the Github repository and create a docker image using the Dockerfile. Afterwards it will output an ImageStreamTag 'ping-app:latest' that can be used in a DeploymentConfig file.
+We need a BuildConfig file that will perform the action of downloading the Github repository and create a docker image using the Dockerfile. Afterwards it will output an ImageStreamTag 'ping-app:latest' that can be used in a DeploymentConfig file.
 
 ```bash
 oc create -f ping-bc.yaml # bc stands for BuildConfig
@@ -105,14 +105,14 @@ oc create -f ping-bc.yaml # bc stands for BuildConfig
 
 We need to create the Service, Route and DeploymentConfig files. Three aspects of the DeploymentConfig need to be noted:
 * The image property of spec.template.spec.containers[0] must be empty, because it will be automatically fulfilled by the ImageStreamTag (previously created by the BuildConfig).
-* The ImageChange triggers work only when it detects a new build image 'ping-app:latest' in order to perform another deployment with it (https://docs.openshift.com/container-platform/4.1/builds/triggering-builds-build-hooks.html#builds-using-image-change-triggers_triggering-builds-build-hooks)
-* ImageChange has an **automatic** parameter that has to be set to _false_, to avoid any conflict between Jenkins and Openshift deploying at the same time.
+* Only when a new build image 'ping-app:latest' is detected; ImageChange will trigger redeploy of our application. (https://docs.openshift.com/container-platform/4.1/builds/triggering-builds-build-hooks.html#builds-using-image-change-triggers_triggering-builds-build-hooks)
+* ImageChange has an **automatic** parameter that must be set to _false_, to avoid any conflict between Jenkins and Openshift deploying at the same time.
 
 ```bash
 oc create -f ping-route.yaml -f ping-svc.yaml -f ping-dc.yaml
 ```
 
-Finally, through the Jenkins strategy a pipeline is created that is essentially a BuildConfig file. Also it's worth nothing that we can't use declarative pipelines as default; for that a plug-in must be installed. Our pipeline uses a 'nodejs' agent to execute our defined stages. Jenkins provide us three agents, which are: _Base, Maven and NodeJS_ (https://docs.openshift.com/container-platform/3.11/using_images/other_images/jenkins_slaves.html). If another agent is needed, create it using the Jenkins configuration system option and make sure that **oc** is installed.
+Finally, through the Jenkins strategy a pipeline is created that is essentially a BuildConfig file. Also, it's worth noting that we can't use declarative pipelines as default; for that a plug-in must be installed. Our pipeline uses a 'nodejs' agent to execute our defined stages. Jenkins provide us with three agents, which are: _Base, Maven and NodeJS_ (https://docs.openshift.com/container-platform/3.11/using_images/other_images/jenkins_slaves.html). If another agent is needed, create it using the Jenkins configuration system option and make sure that **oc** is installed.
 
 ```bash
 oc create -f ping-pipeline.yaml
