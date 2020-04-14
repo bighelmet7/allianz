@@ -105,8 +105,8 @@ oc create -f ping-bc.yaml # bc stands for BuildConfig
 
 We need to create the Service, Route and DeploymentConfig files. Three aspects of the DeploymentConfig need to be noted:
 * The image property of spec.template.spec.containers[0] must be empty, because it will be automatically fulfilled by the ImageStreamTag (previously created by the BuildConfig).
-* Only when a new build image 'ping-app:latest' is detected; ImageChange will trigger redeploy of our application. (https://docs.openshift.com/container-platform/4.1/builds/triggering-builds-build-hooks.html#builds-using-image-change-triggers_triggering-builds-build-hooks)
-* ImageChange has an **automatic** parameter that must be set to _false_, to avoid any conflict between Jenkins and Openshift deploying at the same time.
+* Only when a new build image 'ping-app:latest' is detected; will ImageChange only then trigger the redeployment of our application. (https://docs.openshift.com/container-platform/4.1/builds/triggering-builds-build-hooks.html#builds-using-image-change-triggers_triggering-builds-build-hooks)
+* ImageChange has an **automatic** parameter that must be set to _false_ to avoid any conflict between Jenkins and Openshift deploying at the same time.
 
 ```bash
 oc create -f ping-route.yaml -f ping-svc.yaml -f ping-dc.yaml
