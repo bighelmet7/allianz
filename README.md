@@ -33,11 +33,11 @@ The two main directories
 
 # Setting up an user
 
-We will create a user called 'devops' that will perfom all our commands, meaning we can differentiate between an admin user, developer and a devops.
+We will create a user called 'devops' that will perfom all our commands.
 
 ```bash
 oc create user devops
-# DONT USE THIS METHOD ON PRODUCTION (see LDAP, OAuth, ... https://docs.openshift.com/container-platform/3.11/install_config/configuring_authentication.html)
+# DONT USE THIS METHOD IN PRODUCTION (see LDAP, OAuth, ... https://docs.openshift.com/container-platform/3.11/install_config/configuring_authentication.html)
 oc create identity anypassword:devops 
 oc create useridentitymapping anypassword:devops
 
@@ -70,7 +70,7 @@ oc create ns allianz
 
 # 3. Deploy a Jenkins instance
 
-OKD provides us with a catalog of plug-n-play templates. Instead of creating our own Jenkins environment we will able to select the Jenkins (ephemeral) template: by selecting the created project, clicking the 'Catalog' option, selecting the suitable 'Jenkins (ephemeral)' and  then clicking the 'Create' option. Finally, the minishift will perform all the needed steps to set up our new Jenkins.
+OKD provides us with a catalog of plug-n-play templates. Instead of creating our own Jenkins environment we will able to select the Jenkins (ephemeral) template by: selecting the created project, clicking the 'Catalog' option, selecting the suitable 'Jenkins (ephemeral)' and  then clicking the 'Create' option. Finally, the minishift will perform all the needed steps to set up our new Jenkins.
 
 NOTE: for a persistent Jenkins version, it can be downloaded using the following link: https://github.com/openshift/origin/blob/master/examples/jenkins/jenkins-persistent-template.json
 
